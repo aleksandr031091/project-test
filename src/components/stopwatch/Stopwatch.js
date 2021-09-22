@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import StopwatchStyled from "./StopwatchStyled";
+import { interval, scan, startWith } from "rxjs";
 
-import { interval, scan, share, startWith } from "rxjs";
+import StopwatchStyled from "./StopwatchStyled";
 
 const initialState = {
   time: 0,
@@ -19,26 +19,24 @@ const Stopwatch = () => {
         startWith(time),
         scan((time) => time + 1)
       )
-      .subscribe((val) => {
-        isActive && setState((prev) => ({ ...prev, time: val }));
+      .subscribe(() => {
+        isActive && setState((prev) => ({ ...prev, time: prev.time + 1 }));
       });
 
     return () => {
       start.unsubscribe();
     };
-    // timer.unSubscribe();
   }, [isActive]);
 
   const displayTime = (time) => {
-    // console.log(state);
     return new Date(time * 1000).toISOString().substr(11, 8);
   };
 
   const onHandleClickStart = (e) => {
     if (e.target.textContent === "Stop") {
-      setState((prev) => ({ ...prev, isActive: false }));
       toggleActive();
       onHandleClickReset();
+      return;
     }
     toggleActive();
   };
@@ -49,9 +47,7 @@ const Stopwatch = () => {
 
   const onHandleClickWait = () => {};
 
-  const onHandleClickReset = () => {
-    setState((prev) => ({ ...prev, time: 0 }));
-  };
+  const onHandleClickReset = () => setState((prev) => ({ ...prev, time: 0 }));
 
   return (
     <StopwatchStyled>
