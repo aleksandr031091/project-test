@@ -1,20 +1,29 @@
 import { useState, useEffect } from "react";
-import { interval, scan, startWith } from "rxjs";
+import {
+  interval,
+  scan,
+  startWith,
+  fromEvent,
+  debounceTime,
+  first,
+  buffer,
+  race,
+  map,
+} from "rxjs";
 
 import StopwatchStyled from "./StopwatchStyled";
 
 const initialState = {
   time: 0,
   isActive: false,
-  timer: interval(1000),
 };
 
 const Stopwatch = () => {
   const [state, setState] = useState(initialState);
-  const { time, isActive, timer } = state;
+  const { time, isActive } = state;
 
   useEffect(() => {
-    const start = timer
+    const start = interval(1000)
       .pipe(
         startWith(time),
         scan((time) => time + 1)
@@ -34,8 +43,8 @@ const Stopwatch = () => {
 
   const onHandleClickStart = (e) => {
     if (e.target.textContent === "Stop") {
-      toggleActive();
       onHandleClickReset();
+      toggleActive();
       return;
     }
     toggleActive();
@@ -45,9 +54,25 @@ const Stopwatch = () => {
     setState((prev) => ({ ...prev, isActive: !prev.isActive }));
   };
 
-  const onHandleClickWait = () => {};
+  const onHandleClickWait = () => {
+    const click = fromEvent(window, "click");
+    const debaunce = click.pipe(debounceTime(300));
+    const gate = race(debaunce).pipe(first());
 
-  const onHandleClickReset = () => setState((prev) => ({ ...prev, time: 0 }));
+    click
+      .pipe(
+        buffer(gate),
+        map((click) => click.length)
+      )
+      .subscribe((click) => {
+        // console.log(click);
+        if (click === 2) setState((prev) => ({ ...prev, isActive: false }));
+      });
+  };
+
+  const onHandleClickReset = () => {
+    setState((prev) => ({ ...prev, time: 0 }));
+  };
 
   return (
     <StopwatchStyled>
