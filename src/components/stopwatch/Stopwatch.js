@@ -56,8 +56,8 @@ const Stopwatch = () => {
 
   const onHandleClickWait = () => {
     const click = fromEvent(window, "click");
-    const debaunce = click.pipe(debounceTime(300));
-    const gate = race(debaunce).pipe(first());
+    const debounce = click.pipe(debounceTime(300));
+    const gate = race(debounce).pipe(first());
 
     click
       .pipe(
@@ -65,7 +65,6 @@ const Stopwatch = () => {
         map((click) => click.length)
       )
       .subscribe((click) => {
-        // console.log(click);
         if (click === 2) setState((prev) => ({ ...prev, isActive: false }));
       });
   };
